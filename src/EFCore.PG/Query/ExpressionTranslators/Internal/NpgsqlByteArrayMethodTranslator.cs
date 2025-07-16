@@ -41,7 +41,7 @@ public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
         Check.NotNull(method, nameof(method));
         Check.NotNull(arguments, nameof(arguments));
 
-        if (method.IsGenericMethod && arguments[0].TypeMapping is NpgsqlByteArrayTypeMapping typeMapping)
+        if (method.IsGenericMethod && arguments.Count > 0 && arguments[0].TypeMapping is NpgsqlByteArrayTypeMapping typeMapping)
         {
             // Note: we only translate if the array argument is a column mapped to bytea. There are various other
             // cases (e.g. Where(b => new byte[] { 1, 2, 3 }.Contains(b.SomeByte))) where we prefer to translate via

@@ -1,0 +1,14 @@
+parameters:
+  - name: dotNetVersion
+    type: string
+    default: '9.x'
+
+steps:
+  - task: UseDotNet@2
+    displayName: 'Install .NET SDK'
+    inputs:
+      packageType: 'sdk'
+      version: ${{ parameters.dotNetVersion }}
+      
+  - task: NuGetAuthenticate@1
+    displayName: 'Authenticate with Azure Artifacts'

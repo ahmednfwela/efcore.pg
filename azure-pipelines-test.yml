@@ -1,0 +1,56 @@
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: TestPackages
+    displayName: 'Test EFCore.PG'
+    strategy:
+      matrix:
+        PostgreSQL_15:
+          postgresVersion: '15'
+        PostgreSQL_16:
+          postgresVersion: '16'
+        PostgreSQL_17:
+          postgresVersion: '17'
+
+    services:
+      postgres:
+        image: postgres:$(postgresVersion)
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: npgsql_tests
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - template: azure-template.yml
+        parameters:
+          dotNetVersion: "9.x"
+
+      - task: DotNetCoreCLI@2
+        displayName: 'Restore packages'
+        inputs:
+          command: 'restore'
+          projects: 'EFCore.PG.sln'
+          feedsToUse: 'config'
+          nugetConfigPath: 'NuGet.config'
+
+      - task: DotNetCoreCLI@2
+        displayName: 'Build solution'
+        inputs:
+          command: 'build'
+          projects: 'EFCore.PG.sln'
+          arguments: '--no-restore'
+
+      - task: DotNetCoreCLI@2
+        displayName: 'Run tests'
+        inputs:
+          command: 'test'
+          projects: 'EFCore.PG.sln'
+          arguments: '--no-build --collect:"Code Coverage" /maxcpucount'
+          publishTestResults: true
